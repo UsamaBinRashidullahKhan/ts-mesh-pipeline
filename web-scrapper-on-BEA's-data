@@ -1,0 +1,105 @@
+import requests
+import pandas as pd
+from bs4 import BeautifulSoup
+
+URL = "https://www.bea.gov/data/economic-accounts"
+page = requests.get(URL)
+
+soup = BeautifulSoup(page.text, "html.parser")
+
+results = soup.find(class_="content")
+
+first_page = results.find_all("h3")
+
+web_links = results.select('a')
+actual_web_links = [web_link['href'] for web_link in web_links]
+
+# for i in first_page:
+#   i.span.decompose()
+
+# for i, value in enumerate(first_page):
+#   print(i,value.string)
+  
+# print("Select one of these groupings below to begin exploring BEA's data.")
+# val = int(input("Enter your value: "))
+
+aa = actual_web_links[0]
+url = "https://www.bea.gov"+str(aa)
+
+
+newpage = requests.get(url)
+new_soup = BeautifulSoup(newpage.text, "html.parser")
+new_results = new_soup.find(class_="panel-group")
+
+li = new_results.select('a')
+
+for p in li:
+  link = p['href']
+  #print(p.string)
+
+  pr_url = "https://www.bea.gov"+str(link)
+  #print(pr_url)
+
+  pr_page = requests.get(pr_url)
+
+  pr_soup = BeautifulSoup(pr_page.text, "html.parser")
+  pr_results = pr_soup.find(class_="btn btn-default btn-block")
+  if (pr_results==None):
+    print("data is not available for",p.string)
+  
+  else:
+    data_link = pr_results['href']
+    newpr_url = "https://www.bea.gov"+str(data_link)
+    #print(newpr_url)
+  
+    newpr_page = requests.get(newpr_url)
+    newpr_soup = BeautifulSoup(newpr_page.text, "html.parser")
+    newpr_results = newpr_soup.find('table')
+
+    ftable = pd.DataFrame()
+    for row in newpr_results.tbody.find_all('tr'):    
+    # Find all data for each column
+      columns = row.find_all('td')
+      num = len(columns)
+    #print(num)
+      if(columns != []):
+        if (num==1):
+          df1 = [columns[0].text.strip()]
+          df1 = pd.Series(df1)
+          ftable = pd.concat([ftable,df1], axis=1)
+        
+        elif (num==2):
+          df2 = [columns[0].text.strip(),columns[1].text.strip()]
+          df2 = pd.Series(df2)
+          ftable = pd.concat([ftable,df2], axis=1)
+      
+        elif (num==3):
+          df3 = [columns[0].text.strip(),columns[1].text.strip(),columns[2].text.strip()]
+          df3 = pd.Series(df3)
+          ftable = pd.concat([ftable,df3], axis=1)
+
+        elif (num==4):
+          df4 = [columns[0].text.strip(),columns[1].text.strip(),columns[2].text.strip(),columns[3].text.strip()]
+          df4 = pd.Series(df4)
+          ftable = pd.concat([ftable,df4], axis=1)
+
+        elif (num==5):
+          df5 = [columns[0].text.strip(),columns[1].text.strip(),columns[2].text.strip(),columns[3].text.strip(),columns[4].text.strip()]
+          df5 = pd.Series(df5)
+          ftable = pd.concat([ftable,df5], axis=1)
+
+        elif (num==6):
+          df6 = [columns[0].text.strip(),columns[1].text.strip(),columns[2].text.strip(),columns[3].text.strip(),columns[4].text.strip(),columns[5].text.strip()]
+          df6 = pd.Series(df6)
+          ftable = pd.concat([ftable,df6], axis=1)
+      
+        elif (num==7):
+          df7 = [columns[0].text.strip(),columns[1].text.strip(),columns[2].text.strip(),columns[3].text.strip(),columns[4].text.strip(),columns[5].text.strip(),columns[6].text.strip()]
+          df7 = pd.Series(df7)
+          ftable = pd.concat([ftable,df7], axis=1)
+      
+        else:
+          continue
+
+        se = p.string
+        ftable.to_csv(se+".csv")
